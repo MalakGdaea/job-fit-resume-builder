@@ -1,0 +1,1 @@
+// TypeScript types for resume data
