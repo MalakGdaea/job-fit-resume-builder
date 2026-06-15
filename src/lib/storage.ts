@@ -1,128 +1,194 @@
 /**
  * Storage layer for profiles and resumes.
- * Local JSON-file storage is enough for a local MVP.
- * TODO: Replace with a production database before deploying for real users.
+ * Backed by PostgreSQL through Prisma.
  */
 
-import { mkdir, readFile, writeFile } from "fs/promises";
-import path from "path";
+import { Prisma, type ProfileRecord, type ResumeRecord } from "@prisma/client";
+import { getPrisma } from "@/lib/db";
 import type { Profile } from "@/types/profile";
 import type { Resume } from "@/types/resume";
 
-interface StorageData {
-  profiles: Profile[];
-  resumes: Resume[];
+function cleanJson<T>(value: T): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
-type FileSystemError = Error & {
-  code?: string;
-};
+function parseDate(value: string): Date {
+  const parsed = new Date(value);
 
-const storageDir = path.join(process.cwd(), ".data");
-const storageFile = path.join(storageDir, "storage.json");
-
-const emptyData = (): StorageData => ({
-  profiles: [],
-  resumes: [],
-});
-
-async function loadData(): Promise<StorageData> {
-  try {
-    const rawData = await readFile(storageFile, "utf-8");
-    const parsed = JSON.parse(rawData) as Partial<StorageData>;
-
-    return {
-      profiles: parsed.profiles ?? [],
-      resumes: parsed.resumes ?? [],
-    };
-  } catch (error) {
-    if ((error as FileSystemError).code === "ENOENT") {
-      return emptyData();
-    }
-
-    throw error;
+  if (Number.isNaN(parsed.getTime())) {
+    return new Date();
   }
+
+  return parsed;
 }
 
-async function saveData(data: StorageData): Promise<void> {
-  await mkdir(storageDir, { recursive: true });
-  await writeFile(storageFile, JSON.stringify(data, null, 2), "utf-8");
+function toProfile(record: ProfileRecord): Profile {
+  return {
+    id: record.id,
+    personalInfo: record.personalInfo as unknown as Profile["personalInfo"],
+    workExperience: record.workExperience as unknown as Profile["workExperience"],
+    education: record.education as unknown as Profile["education"],
+    skills: record.skills as unknown as Profile["skills"],
+    projects: record.projects as unknown as Profile["projects"],
+    certifications: record.certifications as unknown as Profile["certifications"],
+    createdAt: record.createdAt.toISOString(),
+    updatedAt: record.updatedAt.toISOString(),
+  };
+}
+
+function toResume(record: ResumeRecord): Resume {
+  return {
+    id: record.id,
+    profileId: record.profileId,
+    jobTitle: record.jobTitle,
+    company: record.company ?? undefined,
+    personalInfo: record.personalInfo as unknown as Resume["personalInfo"],
+    summary: record.summary,
+    workExperience: record.workExperience as unknown as Resume["workExperience"],
+    education: record.education as unknown as Resume["education"],
+    skills: record.skills as unknown as Resume["skills"],
+    projects: record.projects as unknown as Resume["projects"],
+    certifications: record.certifications as unknown as Resume["certifications"],
+    fitScore: record.fitScore as unknown as Resume["fitScore"],
+    createdAt: record.createdAt.toISOString(),
+    jobDescription: record.jobDescription ?? undefined,
+  };
 }
 
 export const storage = {
   profile: {
     save: async (profile: Profile): Promise<void> => {
-      const data = await loadData();
-      const existingIndex = data.profiles.findIndex((item) => item.id === profile.id);
+      const prisma = getPrisma();
 
-      if (existingIndex >= 0) {
-        data.profiles[existingIndex] = profile;
-      } else {
-        data.profiles.push(profile);
-      }
-
-      await saveData(data);
+      await prisma.profileRecord.upsert({
+        where: { id: profile.id },
+        create: {
+          id: profile.id,
+          personalInfo: cleanJson(profile.personalInfo),
+          workExperience: cleanJson(profile.workExperience),
+          education: cleanJson(profile.education),
+          skills: cleanJson(profile.skills),
+          projects: cleanJson(profile.projects),
+          certifications: cleanJson(profile.certifications),
+          createdAt: parseDate(profile.createdAt),
+          updatedAt: parseDate(profile.updatedAt),
+        },
+        update: {
+          personalInfo: cleanJson(profile.personalInfo),
+          workExperience: cleanJson(profile.workExperience),
+          education: cleanJson(profile.education),
+          skills: cleanJson(profile.skills),
+          projects: cleanJson(profile.projects),
+          certifications: cleanJson(profile.certifications),
+          updatedAt: parseDate(profile.updatedAt),
+        },
+      });
     },
 
     get: async (id: string): Promise<Profile | null> => {
-      const data = await loadData();
-      return data.profiles.find((profile) => profile.id === id) ?? null;
+      const prisma = getPrisma();
+
+      const profile = await prisma.profileRecord.findUnique({
+        where: { id },
+      });
+
+      return profile ? toProfile(profile) : null;
     },
 
     getAll: async (): Promise<Profile[]> => {
-      const data = await loadData();
-      return data.profiles;
+      const prisma = getPrisma();
+
+      const profiles = await prisma.profileRecord.findMany({
+        orderBy: { updatedAt: "desc" },
+      });
+
+      return profiles.map(toProfile);
     },
 
     delete: async (id: string): Promise<boolean> => {
-      const data = await loadData();
-      const initialCount = data.profiles.length;
-      data.profiles = data.profiles.filter((profile) => profile.id !== id);
+      const prisma = getPrisma();
 
-      if (data.profiles.length === initialCount) {
+      try {
+        await prisma.profileRecord.delete({
+          where: { id },
+        });
+        return true;
+      } catch {
         return false;
       }
-
-      await saveData(data);
-      return true;
     },
   },
 
   resume: {
     save: async (resume: Resume): Promise<void> => {
-      const data = await loadData();
-      const existingIndex = data.resumes.findIndex((item) => item.id === resume.id);
+      const prisma = getPrisma();
 
-      if (existingIndex >= 0) {
-        data.resumes[existingIndex] = resume;
-      } else {
-        data.resumes.push(resume);
-      }
-
-      await saveData(data);
+      await prisma.resumeRecord.upsert({
+        where: { id: resume.id },
+        create: {
+          id: resume.id,
+          profileId: resume.profileId,
+          jobTitle: resume.jobTitle,
+          company: resume.company ?? null,
+          personalInfo: cleanJson(resume.personalInfo),
+          summary: resume.summary,
+          workExperience: cleanJson(resume.workExperience),
+          education: cleanJson(resume.education),
+          skills: cleanJson(resume.skills),
+          projects: cleanJson(resume.projects),
+          certifications: cleanJson(resume.certifications),
+          fitScore: cleanJson(resume.fitScore),
+          createdAt: parseDate(resume.createdAt),
+          jobDescription: resume.jobDescription ?? null,
+        },
+        update: {
+          jobTitle: resume.jobTitle,
+          company: resume.company ?? null,
+          personalInfo: cleanJson(resume.personalInfo),
+          summary: resume.summary,
+          workExperience: cleanJson(resume.workExperience),
+          education: cleanJson(resume.education),
+          skills: cleanJson(resume.skills),
+          projects: cleanJson(resume.projects),
+          certifications: cleanJson(resume.certifications),
+          fitScore: cleanJson(resume.fitScore),
+          jobDescription: resume.jobDescription ?? null,
+        },
+      });
     },
 
     get: async (id: string): Promise<Resume | null> => {
-      const data = await loadData();
-      return data.resumes.find((resume) => resume.id === id) ?? null;
+      const prisma = getPrisma();
+
+      const resume = await prisma.resumeRecord.findUnique({
+        where: { id },
+      });
+
+      return resume ? toResume(resume) : null;
     },
 
     getByProfileId: async (profileId: string): Promise<Resume[]> => {
-      const data = await loadData();
-      return data.resumes.filter((resume) => resume.profileId === profileId);
+      const prisma = getPrisma();
+
+      const resumes = await prisma.resumeRecord.findMany({
+        where: { profileId },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return resumes.map(toResume);
     },
 
     delete: async (id: string): Promise<boolean> => {
-      const data = await loadData();
-      const initialCount = data.resumes.length;
-      data.resumes = data.resumes.filter((resume) => resume.id !== id);
+      const prisma = getPrisma();
 
-      if (data.resumes.length === initialCount) {
+      try {
+        await prisma.resumeRecord.delete({
+          where: { id },
+        });
+        return true;
+      } catch {
         return false;
       }
-
-      await saveData(data);
-      return true;
     },
   },
 };

@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ProfileRecord {
+  id              String         @id
+  personalInfo    Json
+  workExperience  Json
+  education       Json
+  skills          Json
+  projects        Json
+  certifications  Json
+  createdAt       DateTime
+  updatedAt       DateTime
+  resumes         ResumeRecord[]
+
+  @@map("profiles")
+}
+
+model ResumeRecord {
+  id              String        @id
+  profileId       String
+  jobTitle        String
+  company         String?
+  personalInfo    Json
+  summary         String
+  workExperience  Json
+  education       Json
+  skills          Json
+  projects        Json
+  certifications  Json
+  fitScore        Json
+  createdAt       DateTime
+  jobDescription  String?
+  profile         ProfileRecord @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@map("resumes")
+}
