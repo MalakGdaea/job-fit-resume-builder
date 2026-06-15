@@ -35,4 +35,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - No `any` in TypeScript
 - Named exports for components, default exports for pages only
 - Run `npm run lint` and `npm run type-check` before finishing any task
+
+### Git
+- When committing, use Conventional Commit-style messages: `feat: ...`, `fix: ...`, `docs: ...`, `refactor: ...`, `test: ...`, `chore: ...`, or `style: ...`
+- Use `feat` for user-facing functionality, `fix` for bug fixes, `docs` for documentation-only changes, `refactor` for behavior-preserving code changes, `test` for tests, `chore` for tooling/dependency/maintenance work, and `style` for formatting-only changes
+- Keep the commit subject concise, imperative, and lowercase after the prefix, for example: `feat: add resume export flow`
+- When the user asks to push code, create commits that follow this naming rule before pushing
 <!-- END:project-rules -->
