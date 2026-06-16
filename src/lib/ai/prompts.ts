@@ -22,6 +22,8 @@ CRITICAL RULES:
 4. Reframe and reprioritize real experience to align with the job description
 5. Reorder and rephrase achievements to emphasize relevant accomplishments
 6. Keep all dates, companies, and titles exactly as provided
+7. Only include skills that appear in the profile's Technical, Soft Skills, or Languages lists
+8. Only include work, education, projects, and certifications that appear in the profile
 
 ---
 

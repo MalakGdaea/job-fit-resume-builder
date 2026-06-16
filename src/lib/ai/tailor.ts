@@ -5,18 +5,12 @@
 
 import { DEFAULT_MODEL, getAnthropicClient } from "./client";
 import { createTailoringPrompt } from "./prompts";
+import {
+  parseJsonObjectFromAiResponse,
+  validateTailoredResumeResponse,
+} from "./validation";
 import type { Profile } from "@/types/profile";
-import type { Resume, FitScore, TailoredWorkExperience, TailoredEducation, TailoredProject, TailoredCertification } from "@/types/resume";
-
-interface TailoredResumeResponse {
-  summary: string;
-  workExperience: TailoredWorkExperience[];
-  education: TailoredEducation[];
-  skills: string[];
-  projects: TailoredProject[];
-  certifications: TailoredCertification[];
-  fitScore: FitScore;
-}
+import type { Resume } from "@/types/resume";
 
 /**
  * Tailors a user's profile to match a specific job description
@@ -45,19 +39,14 @@ export async function tailorResume(
       ],
     });
 
-    // Extract the response text
-    const responseText = message.content[0].type === "text"
-      ? message.content[0].text
-      : "";
+    const responseText = message.content
+      .filter((contentBlock) => contentBlock.type === "text")
+      .map((contentBlock) => contentBlock.text)
+      .join("\n")
+      .trim();
 
-    // Parse the JSON response
-    let tailoredData: TailoredResumeResponse;
-    try {
-      tailoredData = JSON.parse(responseText);
-    } catch {
-      console.error("Failed to parse AI response:", responseText);
-      throw new Error("AI returned invalid JSON response");
-    }
+    const parsedResponse = parseJsonObjectFromAiResponse(responseText);
+    const tailoredData = validateTailoredResumeResponse(parsedResponse, profile);
 
     // Build the complete Resume object
     const resume: Resume = {

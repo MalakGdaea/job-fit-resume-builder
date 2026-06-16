@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { AiResponseValidationError } from "@/lib/ai/validation";
 import { storage } from "@/lib/data/storage";
 import { tailorResume } from "@/lib/ai/tailor";
 
@@ -61,6 +62,16 @@ export async function POST(request: NextRequest) {
 
     // Handle specific error types
     if (error instanceof Error) {
+      if (error instanceof AiResponseValidationError) {
+        return NextResponse.json(
+          {
+            error: "AI returned a resume that could not be safely validated.",
+            issues: error.issues,
+          },
+          { status: 502 }
+        );
+      }
+
       if (error.message.includes("API key")) {
         return NextResponse.json(
           { error: "AI service configuration error. Please check API keys." },
