@@ -4,7 +4,7 @@
  */
 
 import { Prisma, type ProfileRecord, type ResumeRecord } from "@prisma/client";
-import { getPrisma } from "@/lib/db";
+import { getPrisma } from "@/lib/data/db";
 import type { Profile } from "@/types/profile";
 import type { Resume } from "@/types/resume";
 

@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { storage } from "@/lib/storage";
-import { generatePDF, generateDOCX } from "@/lib/export";
+import { storage } from "@/lib/data/storage";
+import { generatePDF, generateDOCX } from "@/lib/resume/export";
 
 export async function POST(request: NextRequest) {
   try {

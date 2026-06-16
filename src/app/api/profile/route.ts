@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { storage } from "@/lib/storage";
+import { storage } from "@/lib/data/storage";
 import type { Profile } from "@/types/profile";
 
 // GET /api/profile - Get all profiles or specific profile by ID

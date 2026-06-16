@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { storage } from "@/lib/storage";
+import { storage } from "@/lib/data/storage";
 import { tailorResume } from "@/lib/ai/tailor";
 
 export async function POST(request: NextRequest) {
