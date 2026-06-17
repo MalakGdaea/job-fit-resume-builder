@@ -2,6 +2,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Create `.env.local` from `.env.example`. Use `AI_PROVIDER=mock` to generate resumes locally without paid AI calls. Use `AI_PROVIDER=anthropic` with `ANTHROPIC_API_KEY` when you want to call Claude.
+
 First, run the development server:
 
 ```bash
