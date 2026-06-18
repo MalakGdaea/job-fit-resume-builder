@@ -95,12 +95,6 @@ export async function generatePDF(resume: Resume): Promise<Buffer> {
       doc.moveDown();
     }
 
-    addPdfSection(doc, "Job Fit");
-    doc.fontSize(10).font("Helvetica").text(`Overall: ${resume.fitScore.overall}%`);
-    doc.text(
-      `Skills: ${resume.fitScore.breakdown.skills}% | Experience: ${resume.fitScore.breakdown.experience}% | Education: ${resume.fitScore.breakdown.education}%`
-    );
-
     doc.end();
   });
 }
@@ -183,12 +177,6 @@ export async function generateDOCX(resume: Resume): Promise<Buffer> {
       ));
     });
   }
-
-  children.push(sectionHeading("Job Fit"));
-  children.push(new Paragraph(`Overall: ${resume.fitScore.overall}%`));
-  children.push(new Paragraph(
-    `Skills: ${resume.fitScore.breakdown.skills}% | Experience: ${resume.fitScore.breakdown.experience}% | Education: ${resume.fitScore.breakdown.education}%`
-  ));
 
   const doc = new Document({
     sections: [
