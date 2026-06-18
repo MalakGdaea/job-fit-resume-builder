@@ -33,6 +33,13 @@ export function getPrisma(): PrismaClient {
 
   const allowSelfSignedCertificate =
     process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === "false";
+
+  if (process.env.NODE_ENV === "production" && allowSelfSignedCertificate) {
+    throw new Error(
+      "DATABASE_SSL_REJECT_UNAUTHORIZED=false is not allowed in production."
+    );
+  }
+
   const normalizedConnectionString = getConnectionString(
     connectionString,
     allowSelfSignedCertificate
