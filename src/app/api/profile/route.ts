@@ -1,13 +1,13 @@
-/**
- * Profile API route
- * Handles saving and loading user profiles
- */
-
 import { NextRequest, NextResponse } from "next/server";
 import { storage } from "@/lib/data/storage";
 import type { Profile } from "@/types/profile";
 
-// GET /api/profile - Get all profiles or specific profile by ID
+function hasRequiredProfileFields(profile: Profile): boolean {
+  return Boolean(
+    profile.id && profile.personalInfo?.fullName && profile.personalInfo?.email
+  );
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ profile });
     }
 
-    // Return all profiles (for development/testing)
     const profiles = await storage.profile.getAll();
     return NextResponse.json({ profiles });
   } catch (error) {
@@ -36,25 +35,25 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/profile - Save a new profile
 export async function POST(request: NextRequest) {
   try {
     const profile: Profile = await request.json();
 
-    // Basic validation
-    if (!profile.id || !profile.personalInfo?.fullName || !profile.personalInfo?.email) {
+    if (!hasRequiredProfileFields(profile)) {
       return NextResponse.json(
         { error: "Missing required fields: id, fullName, email" },
         { status: 400 }
       );
     }
 
-    // Update timestamps
-    profile.updatedAt = new Date().toISOString();
+    const savedProfile: Profile = {
+      ...profile,
+      updatedAt: new Date().toISOString(),
+    };
 
-    await storage.profile.save(profile);
+    await storage.profile.save(savedProfile);
 
-    return NextResponse.json({ success: true, profileId: profile.id });
+    return NextResponse.json({ success: true, profileId: savedProfile.id });
   } catch (error) {
     console.error("Error saving profile:", error);
     return NextResponse.json(
@@ -64,7 +63,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT /api/profile - Update existing profile
 export async function PUT(request: NextRequest) {
   try {
     const profile: Profile = await request.json();
@@ -84,13 +82,15 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Update timestamps
-    profile.updatedAt = new Date().toISOString();
-    profile.createdAt = existing.createdAt; // Preserve original creation date
+    const savedProfile: Profile = {
+      ...profile,
+      createdAt: existing.createdAt,
+      updatedAt: new Date().toISOString(),
+    };
 
-    await storage.profile.save(profile);
+    await storage.profile.save(savedProfile);
 
-    return NextResponse.json({ success: true, profileId: profile.id });
+    return NextResponse.json({ success: true, profileId: savedProfile.id });
   } catch (error) {
     console.error("Error updating profile:", error);
     return NextResponse.json(
@@ -100,7 +100,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE /api/profile - Delete a profile
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

@@ -1,26 +1,34 @@
-/**
- * Resume generation API route
- * Calls AI to tailor a resume based on job description
- */
-
 import { NextRequest, NextResponse } from "next/server";
 import { AiResponseValidationError } from "@/lib/ai/validation";
 import { storage } from "@/lib/data/storage";
 import { tailorResume } from "@/lib/ai/tailor";
 
+type GenerateRequestBody = {
+  jobDescription?: unknown;
+};
+
+function getJobDescription(body: GenerateRequestBody): string | null {
+  if (typeof body.jobDescription !== "string") {
+    return null;
+  }
+
+  const jobDescription = body.jobDescription.trim();
+
+  return jobDescription.length > 0 ? jobDescription : null;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { jobDescription } = await request.json();
+    const body = (await request.json()) as GenerateRequestBody;
+    const jobDescription = getJobDescription(body);
 
-    // Validate input
-    if (!jobDescription || typeof jobDescription !== "string") {
+    if (!jobDescription) {
       return NextResponse.json(
         { error: "Job description is required" },
         { status: 400 }
       );
     }
 
-    // Get the user's profile (for now, get the most recent one)
     // TODO: In production, authenticate the user and get their specific profile
     const profiles = await storage.profile.getAll();
 
@@ -31,17 +39,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the most recently updated profile
-    const profile = profiles.sort(
-      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    )[0];
+    const [profile] = profiles;
 
-    // Optional: Extract job title and company from job description
-    // For now, we'll let the AI handle this
     const jobTitle = undefined;
     const company = undefined;
 
-    // Call AI to tailor the resume
     const resume = await tailorResume(
       profile,
       jobDescription,
@@ -49,7 +51,6 @@ export async function POST(request: NextRequest) {
       company
     );
 
-    // Save the generated resume
     await storage.resume.save(resume);
 
     return NextResponse.json({
@@ -60,7 +61,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error generating resume:", error);
 
-    // Handle specific error types
     if (error instanceof Error) {
       if (error instanceof AiResponseValidationError) {
         return NextResponse.json(
