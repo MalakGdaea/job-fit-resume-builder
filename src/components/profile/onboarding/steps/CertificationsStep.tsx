@@ -7,7 +7,7 @@ import {
   StepActions,
   StepSection,
   TextField,
-} from "@/components/profile/onboarding/FormControls";
+} from "@/components/profile/onboarding/controls";
 
 type CertificationsStepProps = {
   certifications: Certification[];

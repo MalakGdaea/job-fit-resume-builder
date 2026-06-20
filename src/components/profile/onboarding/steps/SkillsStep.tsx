@@ -4,9 +4,9 @@ import {
   StepSection,
   TagList,
   TextField,
-} from "@/components/profile/onboarding/FormControls";
-import type { SkillGroups } from "@/components/profile/onboarding/types";
-import { parseCommaList } from "@/components/profile/onboarding/utils";
+} from "@/components/profile/onboarding/controls";
+import type { SkillGroups } from "@/types/onboarding";
+import { parseCommaList } from "@/lib/profile/onboardingForm";
 
 type SkillsStepProps = {
   skills: SkillGroups;

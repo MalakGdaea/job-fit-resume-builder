@@ -1,17 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Profile } from "@/types/profile";
+
+type ProfilesResponse = {
+  profiles?: Profile[];
+  error?: string;
+};
 
 export default function BuilderPage() {
   const router = useRouter();
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState("");
+  const [isLoadingProfiles, setIsLoadingProfiles] = useState(true);
+  const [jobTitle, setJobTitle] = useState("");
+  const [company, setCompany] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const loadProfiles = async () => {
+      try {
+        const response = await fetch("/api/profile");
+        const data = (await response.json()) as ProfilesResponse;
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load saved profiles");
+        }
+
+        const savedProfiles = data.profiles ?? [];
+        setProfiles(savedProfiles);
+        setSelectedProfileId(savedProfiles[0]?.id ?? "");
+      } catch (err) {
+        console.error("Error loading profiles:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load saved profiles"
+        );
+      } finally {
+        setIsLoadingProfiles(false);
+      }
+    };
+
+    loadProfiles();
+  }, []);
+
   const handleGenerate = async () => {
     if (!jobDescription.trim()) {
       setError("Please enter a job description");
+      return;
+    }
+
+    if (!jobTitle.trim()) {
+      setError("Please enter the job title");
+      return;
+    }
+
+    if (!selectedProfileId) {
+      setError("Please choose a saved profile before generating a resume");
       return;
     }
 
@@ -22,7 +69,12 @@ export default function BuilderPage() {
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobDescription }),
+        body: JSON.stringify({
+          company,
+          jobDescription,
+          jobTitle,
+          profileId: selectedProfileId,
+        }),
       });
 
       if (!response.ok) {
@@ -56,6 +108,58 @@ export default function BuilderPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Saved Profile *
+              </label>
+              <select
+                value={selectedProfileId}
+                onChange={(event) => setSelectedProfileId(event.target.value)}
+                disabled={isLoadingProfiles || profiles.length === 0}
+                className="w-full px-4 py-3 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 focus:border-transparent disabled:opacity-50"
+              >
+                {isLoadingProfiles && (
+                  <option value="">Loading profiles...</option>
+                )}
+                {!isLoadingProfiles && profiles.length === 0 && (
+                  <option value="">No saved profiles found</option>
+                )}
+                {profiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.personalInfo.fullName} ({profile.personalInfo.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Job Title *
+                </label>
+                <input
+                  type="text"
+                  value={jobTitle}
+                  onChange={(event) => setJobTitle(event.target.value)}
+                  placeholder="Senior Frontend Engineer"
+                  className="w-full px-4 py-3 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Company
+                </label>
+                <input
+                  type="text"
+                  value={company}
+                  onChange={(event) => setCompany(event.target.value)}
+                  placeholder="Company name"
+                  className="w-full px-4 py-3 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                 Job Description *
               </label>
               <textarea
@@ -81,7 +185,13 @@ We're looking for a Senior Frontend Engineer with 5+ years of experience in Reac
 
             <button
               onClick={handleGenerate}
-              disabled={isGenerating || !jobDescription.trim()}
+              disabled={
+                isGenerating ||
+                isLoadingProfiles ||
+                !selectedProfileId ||
+                !jobTitle.trim() ||
+                !jobDescription.trim()
+              }
               className="w-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 py-3 px-6 rounded-md font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isGenerating ? (

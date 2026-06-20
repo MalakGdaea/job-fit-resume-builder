@@ -12,6 +12,7 @@ export default function ResumePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchResume = async () => {
@@ -34,6 +35,7 @@ export default function ResumePage() {
 
   const handleExport = async (format: "pdf" | "docx") => {
     setIsExporting(true);
+    setExportError(null);
 
     try {
       const response = await fetch("/api/export", {
@@ -55,7 +57,9 @@ export default function ResumePage() {
       document.body.removeChild(a);
     } catch (err) {
       console.error("Error exporting resume:", err);
-      alert("Failed to export resume. Please try again.");
+      setExportError(
+        err instanceof Error ? err.message : "Failed to export resume"
+      );
     } finally {
       setIsExporting(false);
     }
@@ -117,6 +121,14 @@ export default function ResumePage() {
           </div>
         </div>
 
+        {exportError && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+            <p className="text-sm text-red-800 dark:text-red-200">
+              {exportError}
+            </p>
+          </div>
+        )}
+
         {/* Fit Score Badge */}
         <div className="mb-6 p-4 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center justify-between">
@@ -158,8 +170,8 @@ export default function ResumePage() {
             </h1>
             <div className="flex flex-wrap justify-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
               <span>{resume.personalInfo.email}</span>
-              {resume.personalInfo.phone && <span>• {resume.personalInfo.phone}</span>}
-              {resume.personalInfo.location && <span>• {resume.personalInfo.location}</span>}
+              {resume.personalInfo.phone && <span>| {resume.personalInfo.phone}</span>}
+              {resume.personalInfo.location && <span>| {resume.personalInfo.location}</span>}
             </div>
             {(resume.personalInfo.linkedin || resume.personalInfo.github || resume.personalInfo.portfolio) && (
               <div className="flex flex-wrap justify-center gap-3 mt-2 text-sm">
@@ -356,8 +368,8 @@ export default function ResumePage() {
                       )}
                     </h3>
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      {cert.issuer} • {cert.dateIssued}
-                      {cert.credentialId && ` • ID: ${cert.credentialId}`}
+                      {cert.issuer} | {cert.dateIssued}
+                      {cert.credentialId && ` | ID: ${cert.credentialId}`}
                     </p>
                   </div>
                 ))}

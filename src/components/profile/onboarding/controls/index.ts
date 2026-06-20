@@ -2,7 +2,7 @@ export {
   CheckboxField,
   TextAreaField,
   TextField,
-} from "@/components/profile/onboarding/FormFields";
+} from "@/components/profile/onboarding/controls/FormFields";
 export {
   AddItemButton,
   EmptyState,
@@ -10,4 +10,4 @@ export {
   StepActions,
   StepSection,
   TagList,
-} from "@/components/profile/onboarding/FormLayout";
+} from "@/components/profile/onboarding/controls/FormLayout";

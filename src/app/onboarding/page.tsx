@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CertificationsStep } from "@/components/profile/onboarding/CertificationsStep";
-import { EducationStep } from "@/components/profile/onboarding/EducationStep";
-import { PersonalInfoStep } from "@/components/profile/onboarding/PersonalInfoStep";
-import { ProgressIndicator } from "@/components/profile/onboarding/ProgressIndicator";
-import { ProjectsStep } from "@/components/profile/onboarding/ProjectsStep";
-import { SkillsStep } from "@/components/profile/onboarding/SkillsStep";
-import { WorkExperienceStep } from "@/components/profile/onboarding/WorkExperienceStep";
 import {
-  type OnboardingStep,
-} from "@/components/profile/onboarding/types";
-import { useOnboardingProfileForm } from "@/components/profile/onboarding/useOnboardingProfileForm";
+  CertificationsStep,
+  EducationStep,
+  PersonalInfoStep,
+  ProgressIndicator,
+  ProjectsStep,
+  SkillsStep,
+  WorkExperienceStep,
+} from "@/components/profile/onboarding/steps";
+import { useOnboardingProfileForm } from "@/hooks/useOnboardingProfileForm";
+import type { OnboardingStep } from "@/types/onboarding";
 
 export default function OnboardingPage() {
   const router = useRouter();

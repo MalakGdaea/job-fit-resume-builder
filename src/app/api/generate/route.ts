@@ -4,23 +4,61 @@ import { storage } from "@/lib/data/storage";
 import { tailorResume } from "@/lib/ai/tailor";
 
 type GenerateRequestBody = {
+  company?: unknown;
   jobDescription?: unknown;
+  jobTitle?: unknown;
+  profileId?: unknown;
 };
 
-function getJobDescription(body: GenerateRequestBody): string | null {
-  if (typeof body.jobDescription !== "string") {
+function getRequiredString(value: unknown): string | null {
+  if (typeof value !== "string") {
     return null;
   }
 
-  const jobDescription = body.jobDescription.trim();
+  const trimmedValue = value.trim();
 
-  return jobDescription.length > 0 ? jobDescription : null;
+  return trimmedValue.length > 0 ? trimmedValue : null;
+}
+
+function getOptionalString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmedValue = value.trim();
+
+  return trimmedValue.length > 0 ? trimmedValue : undefined;
+}
+
+function getJobDescription(body: GenerateRequestBody): string | null {
+  return getRequiredString(body.jobDescription);
+}
+
+function getJobTitle(body: GenerateRequestBody): string | null {
+  return getRequiredString(body.jobTitle);
+}
+
+function getCompany(body: GenerateRequestBody): string | undefined {
+  return getOptionalString(body.company);
+}
+
+function getProfileId(body: GenerateRequestBody): string | null {
+  const profileId = getRequiredString(body.profileId);
+
+  if (!profileId) {
+    return null;
+  }
+
+  return profileId;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as GenerateRequestBody;
     const jobDescription = getJobDescription(body);
+    const jobTitle = getJobTitle(body);
+    const company = getCompany(body);
+    const profileId = getProfileId(body);
 
     if (!jobDescription) {
       return NextResponse.json(
@@ -29,20 +67,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: In production, authenticate the user and get their specific profile
-    const profiles = await storage.profile.getAll();
-
-    if (profiles.length === 0) {
+    if (!jobTitle) {
       return NextResponse.json(
-        { error: "No profile found. Please create a profile first at /onboarding" },
-        { status: 404 }
+        { error: "Job title is required" },
+        { status: 400 }
       );
     }
 
-    const [profile] = profiles;
+    if (!profileId) {
+      return NextResponse.json(
+        { error: "Profile ID is required. Please choose a saved profile." },
+        { status: 400 }
+      );
+    }
 
-    const jobTitle = undefined;
-    const company = undefined;
+    const profile = await storage.profile.get(profileId);
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: "Profile not found. Please create or choose a saved profile." },
+        { status: 404 }
+      );
+    }
 
     const resume = await tailorResume(
       profile,

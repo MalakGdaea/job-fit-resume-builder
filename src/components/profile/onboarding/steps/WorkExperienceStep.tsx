@@ -7,8 +7,8 @@ import {
   StepSection,
   TextAreaField,
   TextField,
-} from "@/components/profile/onboarding/FormControls";
-import { parseLineList } from "@/components/profile/onboarding/utils";
+} from "@/components/profile/onboarding/controls";
+import { parseLineList } from "@/lib/profile/onboardingForm";
 
 type WorkExperienceStepProps = {
   workExperience: WorkExperience[];

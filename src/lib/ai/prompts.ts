@@ -47,7 +47,7 @@ ${profile.workExperience
   ${exp.location ? `Location: ${exp.location}` : ""}
   ${exp.description}
   Achievements:
-${exp.achievements.map((ach) => `  • ${ach}`).join("\n")}
+${exp.achievements.map((ach) => `  - ${ach}`).join("\n")}
 `
   )
   .join("\n")}
@@ -80,7 +80,7 @@ ${profile.projects
   Technologies: ${proj.technologies.join(", ")}
   ${proj.url ? `URL: ${proj.url}` : ""}
   Highlights:
-${proj.highlights.map((h) => `  • ${h}`).join("\n")}
+${proj.highlights.map((h) => `  - ${h}`).join("\n")}
 `
   )
   .join("\n")}`

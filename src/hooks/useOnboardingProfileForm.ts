@@ -8,13 +8,13 @@ import type {
   Project,
   WorkExperience,
 } from "@/types/profile";
-import type { PersonalInfo, SkillGroups } from "@/components/profile/onboarding/types";
+import type { PersonalInfo, SkillGroups } from "@/types/onboarding";
 import {
   createEmptyCertification,
   createEmptyEducation,
   createEmptyProject,
   createEmptyWorkExperience,
-} from "@/components/profile/onboarding/utils";
+} from "@/lib/profile/onboardingForm";
 
 const initialPersonalInfo: PersonalInfo = {
   fullName: "",

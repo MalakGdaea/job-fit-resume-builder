@@ -1,7 +1,7 @@
 import {
   onboardingSteps,
-  type OnboardingStep,
-} from "@/components/profile/onboarding/types";
+} from "@/constants/onboarding";
+import type { OnboardingStep } from "@/types/onboarding";
 
 type ProgressIndicatorProps = {
   currentStep: OnboardingStep;

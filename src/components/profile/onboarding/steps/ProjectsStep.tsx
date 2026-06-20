@@ -7,11 +7,11 @@ import {
   StepSection,
   TextAreaField,
   TextField,
-} from "@/components/profile/onboarding/FormControls";
+} from "@/components/profile/onboarding/controls";
 import {
   parseCommaList,
   parseLineList,
-} from "@/components/profile/onboarding/utils";
+} from "@/lib/profile/onboardingForm";
 
 type ProjectsStepProps = {
   projects: Project[];

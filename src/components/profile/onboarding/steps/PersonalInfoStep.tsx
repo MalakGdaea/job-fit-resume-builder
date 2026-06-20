@@ -3,8 +3,8 @@ import {
   StepSection,
   TextAreaField,
   TextField,
-} from "@/components/profile/onboarding/FormControls";
-import type { PersonalInfo } from "@/components/profile/onboarding/types";
+} from "@/components/profile/onboarding/controls";
+import type { PersonalInfo } from "@/types/onboarding";
 
 type PersonalInfoStepProps = {
   personalInfo: PersonalInfo;
