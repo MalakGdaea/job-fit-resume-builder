@@ -119,6 +119,8 @@ Create a tailored resume that:
 4. Writes a compelling professional summary tailored to this role
 5. Selects and prioritizes the most relevant projects and skills
 6. Analyzes fit and identifies any gaps
+7. Keeps work experience descriptions concise and puts responsibilities/results in organized bullet points
+8. Keeps project descriptions concise and puts project details/results in organized highlight bullet points
 
 Return your response as valid JSON matching this exact structure:
 
@@ -131,8 +133,8 @@ Return your response as valid JSON matching this exact structure:
       "startDate": "YYYY-MM",
       "endDate": "YYYY-MM or null",
       "location": "City, State",
-      "description": "One-line role description",
-      "achievements": ["Rephrased achievement 1", "Rephrased achievement 2"]
+      "description": "Short role scope, max one sentence",
+      "achievements": ["Rephrased bullet point 1", "Rephrased bullet point 2", "Rephrased bullet point 3"]
     }
   ],
   "education": [
@@ -150,10 +152,10 @@ Return your response as valid JSON matching this exact structure:
   "projects": [
     {
       "name": "Project Name",
-      "description": "Tailored description",
+      "description": "Short project scope, max one sentence",
       "technologies": ["Tech 1"],
       "url": "https://...",
-      "highlights": ["Highlight 1"]
+      "highlights": ["Organized project bullet 1", "Organized project bullet 2"]
     }
   ],
   "certifications": [

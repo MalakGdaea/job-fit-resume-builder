@@ -2,7 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { getDescriptionBulletItems } from "@/lib/resume/bullets";
+import { normalizeExternalUrl } from "@/lib/url";
 import type { Resume } from "@/types/resume";
+
+type ResumeBulletListProps = {
+  bullets: string[];
+};
+
+function ResumeBulletList({ bullets }: ResumeBulletListProps) {
+  if (bullets.length === 0) {
+    return null;
+  }
+
+  return (
+    <ul className="list-disc list-inside space-y-1 text-zinc-700 dark:text-zinc-300">
+      {bullets.map((bullet, index) => (
+        <li key={index} className="ml-2">
+          {bullet}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function ResumePage() {
   const params = useParams();
@@ -92,8 +114,10 @@ export default function ResumePage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black py-12 px-4">
       <div className="max-w-5xl mx-auto">
-        {/* Header with actions */}
-        <div className="mb-8 flex justify-between items-center">
+        <div
+          className="mb-8 flex justify-between items-center"
+          data-print-hide="true"
+        >
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
               Your Tailored Resume
@@ -122,7 +146,10 @@ export default function ResumePage() {
         </div>
 
         {exportError && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+          <div
+            className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md"
+            data-print-hide="true"
+          >
             <p className="text-sm text-red-800 dark:text-red-200">
               {exportError}
             </p>
@@ -130,7 +157,10 @@ export default function ResumePage() {
         )}
 
         {/* Fit Score Badge */}
-        <div className="mb-6 p-4 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+        <div
+          className="mb-6 p-4 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800"
+          data-print-hide="true"
+        >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
@@ -162,7 +192,10 @@ export default function ResumePage() {
         </div>
 
         {/* Resume Preview */}
-        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-800 p-8 md:p-12">
+        <div
+          className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-800 p-8 md:p-12"
+          data-resume-preview="true"
+        >
           {/* Personal Info */}
           <div className="mb-8 text-center border-b border-zinc-200 dark:border-zinc-800 pb-6">
             <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-3">
@@ -176,17 +209,26 @@ export default function ResumePage() {
             {(resume.personalInfo.linkedin || resume.personalInfo.github || resume.personalInfo.portfolio) && (
               <div className="flex flex-wrap justify-center gap-3 mt-2 text-sm">
                 {resume.personalInfo.linkedin && (
-                  <a href={resume.personalInfo.linkedin} className="text-zinc-700 dark:text-zinc-300 hover:underline">
+                  <a
+                    href={normalizeExternalUrl(resume.personalInfo.linkedin)}
+                    className="text-zinc-700 dark:text-zinc-300 hover:underline"
+                  >
                     LinkedIn
                   </a>
                 )}
                 {resume.personalInfo.github && (
-                  <a href={resume.personalInfo.github} className="text-zinc-700 dark:text-zinc-300 hover:underline">
+                  <a
+                    href={normalizeExternalUrl(resume.personalInfo.github)}
+                    className="text-zinc-700 dark:text-zinc-300 hover:underline"
+                  >
                     GitHub
                   </a>
                 )}
                 {resume.personalInfo.portfolio && (
-                  <a href={resume.personalInfo.portfolio} className="text-zinc-700 dark:text-zinc-300 hover:underline">
+                  <a
+                    href={normalizeExternalUrl(resume.personalInfo.portfolio)}
+                    className="text-zinc-700 dark:text-zinc-300 hover:underline"
+                  >
                     Portfolio
                   </a>
                 )}
@@ -232,38 +274,32 @@ export default function ResumePage() {
                 Work Experience
               </h2>
               <div className="space-y-6">
-                {resume.workExperience.map((exp, index) => (
-                  <div key={index}>
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
-                          {exp.position}
-                        </h3>
-                        <p className="text-zinc-700 dark:text-zinc-300 font-medium">
-                          {exp.company}
-                        </p>
+                {resume.workExperience.map((exp, index) => {
+                  const bulletItems = getDescriptionBulletItems(
+                    exp.description,
+                    exp.achievements
+                  );
+
+                  return (
+                    <div key={index}>
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                            {exp.position}
+                          </h3>
+                          <p className="text-zinc-700 dark:text-zinc-300 font-medium">
+                            {exp.company}
+                          </p>
+                        </div>
+                        <div className="text-right text-sm text-zinc-600 dark:text-zinc-400">
+                          <p>{exp.startDate} - {exp.endDate || "Present"}</p>
+                          {exp.location && <p>{exp.location}</p>}
+                        </div>
                       </div>
-                      <div className="text-right text-sm text-zinc-600 dark:text-zinc-400">
-                        <p>{exp.startDate} - {exp.endDate || "Present"}</p>
-                        {exp.location && <p>{exp.location}</p>}
-                      </div>
+                      <ResumeBulletList bullets={bulletItems} />
                     </div>
-                    {exp.description && (
-                      <p className="text-zinc-600 dark:text-zinc-400 mb-2 italic">
-                        {exp.description}
-                      </p>
-                    )}
-                    {exp.achievements.length > 0 && (
-                      <ul className="list-disc list-inside space-y-1 text-zinc-700 dark:text-zinc-300">
-                        {exp.achievements.map((achievement, i) => (
-                          <li key={i} className="ml-2">
-                            {achievement}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -313,36 +349,32 @@ export default function ResumePage() {
                 Projects
               </h2>
               <div className="space-y-4">
-                {resume.projects.map((project, index) => (
-                  <div key={index}>
-                    <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
-                      {project.name}
-                      {project.url && (
-                        <a
-                          href={project.url}
-                          className="ml-2 text-sm text-zinc-600 dark:text-zinc-400 hover:underline"
-                        >
-                          [link]
-                        </a>
-                      )}
-                    </h3>
-                    <p className="text-zinc-700 dark:text-zinc-300 mb-1">
-                      {project.description}
-                    </p>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
-                      <strong>Technologies:</strong> {project.technologies.join(", ")}
-                    </p>
-                    {project.highlights.length > 0 && (
-                      <ul className="list-disc list-inside space-y-1 text-zinc-700 dark:text-zinc-300">
-                        {project.highlights.map((highlight, i) => (
-                          <li key={i} className="ml-2">
-                            {highlight}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
+                {resume.projects.map((project, index) => {
+                  const bulletItems = getDescriptionBulletItems(
+                    project.description,
+                    project.highlights
+                  );
+
+                  return (
+                    <div key={index}>
+                      <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                        {project.name}
+                        {project.url && (
+                          <a
+                            href={normalizeExternalUrl(project.url)}
+                            className="ml-2 text-sm text-zinc-600 dark:text-zinc-400 hover:underline"
+                          >
+                            [link]
+                          </a>
+                        )}
+                      </h3>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+                        <strong>Technologies:</strong> {project.technologies.join(", ")}
+                      </p>
+                      <ResumeBulletList bullets={bulletItems} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -360,7 +392,7 @@ export default function ResumePage() {
                       {cert.name}
                       {cert.url && (
                         <a
-                          href={cert.url}
+                          href={normalizeExternalUrl(cert.url)}
                           className="ml-2 text-sm text-zinc-600 dark:text-zinc-400 hover:underline"
                         >
                           [verify]
@@ -379,7 +411,7 @@ export default function ResumePage() {
         </div>
 
         {/* Back button */}
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center" data-print-hide="true">
           <a
             href="/builder"
             className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 underline"

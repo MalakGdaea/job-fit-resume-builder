@@ -16,6 +16,7 @@ import {
   TextRun,
 } from "docx";
 import { normalizeExternalUrl } from "@/lib/url";
+import { getDescriptionBulletItems } from "@/lib/resume/bullets";
 import type { Resume } from "@/types/resume";
 
 type ContactItem = {
@@ -127,10 +128,13 @@ function renderPdfResume(doc: PDFKit.PDFDocument, resume: Resume): void {
         `${experience.startDate} - ${experience.endDate || "Present"}`,
         experience.location,
       ]);
-      if (experience.description) {
-        addPdfParagraph(doc, experience.description, { italic: true });
-      }
-      addPdfBullets(doc, experience.achievements);
+      addPdfBullets(
+        doc,
+        getDescriptionBulletItems(
+          experience.description,
+          experience.achievements
+        )
+      );
       doc.moveDown(0.35);
     });
   }
@@ -156,11 +160,13 @@ function renderPdfResume(doc: PDFKit.PDFDocument, resume: Resume): void {
     addPdfSection(doc, "Projects");
     resume.projects.forEach((project) => {
       addPdfLinkedTitle(doc, project.name, project.url);
-      addPdfParagraph(doc, project.description);
       if (project.technologies.length > 0) {
         addPdfParagraph(doc, `Technologies: ${project.technologies.join(", ")}`);
       }
-      addPdfBullets(doc, project.highlights);
+      addPdfBullets(
+        doc,
+        getDescriptionBulletItems(project.description, project.highlights)
+      );
       doc.moveDown(0.35);
     });
   }
@@ -225,10 +231,14 @@ function renderDocxResume(resume: Resume): Paragraph[] {
           experience.location,
         ])
       );
-      if (experience.description) {
-        children.push(new Paragraph({ children: [new TextRun({ text: experience.description, italics: true })] }));
-      }
-      children.push(...bulletParagraphs(experience.achievements));
+      children.push(
+        ...bulletParagraphs(
+          getDescriptionBulletItems(
+            experience.description,
+            experience.achievements
+          )
+        )
+      );
     });
   }
 
@@ -255,11 +265,14 @@ function renderDocxResume(resume: Resume): Paragraph[] {
     children.push(sectionHeading("Projects"));
     resume.projects.forEach((project) => {
       children.push(itemTitle(project.name, project.url));
-      children.push(new Paragraph(project.description));
       if (project.technologies.length > 0) {
         children.push(new Paragraph(`Technologies: ${project.technologies.join(", ")}`));
       }
-      children.push(...bulletParagraphs(project.highlights));
+      children.push(
+        ...bulletParagraphs(
+          getDescriptionBulletItems(project.description, project.highlights)
+        )
+      );
     });
   }
 
@@ -395,14 +408,10 @@ function addPdfLinkedTitle(
   }
 }
 
-function addPdfParagraph(
-  doc: PDFKit.PDFDocument,
-  text: string,
-  options?: { italic?: boolean }
-): void {
+function addPdfParagraph(doc: PDFKit.PDFDocument, text: string): void {
   ensurePdfSpace(doc, 32);
   doc
-    .font(options?.italic ? "Helvetica-Oblique" : "Helvetica")
+    .font("Helvetica")
     .fontSize(10)
     .fillColor("#374151")
     .text(text, { lineGap: 2 });
